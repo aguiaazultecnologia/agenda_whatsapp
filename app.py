@@ -352,6 +352,10 @@ def create_app():
             <a href='/agenda/manual-preview'>Prévia Agenda Manual</a>
             """
 
+        @app.route("/healthz")
+        def healthz():
+            return "ok", 200
+
         # =========================
         # PROFISSIONAIS
         # =========================
