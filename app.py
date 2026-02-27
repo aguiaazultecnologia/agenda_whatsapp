@@ -3,6 +3,7 @@ import os
 import re
 import json
 import base64
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib import request as urllib_request
 from datetime import datetime, timedelta
@@ -13,13 +14,27 @@ from models import Profissional, Servico, ProfissionalServico, Agendamento
 def create_app():
     app = Flask(__name__)
 
-    # Garante que a pasta 'instance' exista
-    instance_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance')
-    if not os.path.exists(instance_path):
-        os.makedirs(instance_path)
+    def obter_database_uri():
+        database_url = os.environ.get("DATABASE_URL", "").strip()
+        if database_url:
+            if database_url.startswith("postgres://"):
+                database_url = database_url.replace("postgres://", "postgresql://", 1)
+            return database_url
+
+        render_disk_path = os.environ.get("RENDER_DISK_PATH", "").strip()
+        if render_disk_path:
+            if not os.path.exists(render_disk_path):
+                os.makedirs(render_disk_path)
+            return f"sqlite:///{os.path.join(render_disk_path, 'agenda.db')}"
+
+        instance_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance')
+        if not os.path.exists(instance_path):
+            os.makedirs(instance_path)
+
+        return f"sqlite:///{os.path.join(instance_path, 'agenda.db')}"
 
     # CONFIGURAÇÃO DO BANCO
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(instance_path, "agenda.db")}'
+    app.config['SQLALCHEMY_DATABASE_URI'] = obter_database_uri()
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
@@ -195,14 +210,34 @@ def create_app():
             try:
                 with urllib_request.urlopen(req, timeout=20) as response:
                     return 200 <= response.status < 300
-            except Exception:
+            except HTTPError as erro_http:
+                try:
+                    detalhe = erro_http.read().decode("utf-8")
+                except Exception:
+                    detalhe = "sem detalhe"
+                print(f"[WHATSAPP TWILIO] HTTP {erro_http.code} | detalhe: {detalhe}")
+                return False
+            except URLError as erro_url:
+                print(f"[WHATSAPP TWILIO] Falha de conexão: {erro_url}")
+                return False
+            except Exception as erro_geral:
+                print(f"[WHATSAPP TWILIO] Erro inesperado: {erro_geral}")
                 return False
 
         def enviar_whatsapp_confirmacao(agendamento):
             modo_simulado = ler_env("WHATSAPP_SIMULADO", "1") == "1"
-            provider = ler_env("WHATSAPP_PROVIDER", "meta").lower()
+            provider = ler_env("WHATSAPP_PROVIDER", "").lower()
             telefone = normalizar_telefone(agendamento.cliente_telefone)
             mensagem = montar_mensagem_confirmacao(agendamento)
+
+            twilio_configurado = bool(
+                ler_env("TWILIO_ACCOUNT_SID") and
+                ler_env("TWILIO_AUTH_TOKEN") and
+                ler_env("TWILIO_WHATSAPP_FROM")
+            )
+
+            if not provider:
+                provider = "twilio" if twilio_configurado else "meta"
 
             if not telefone:
                 return False
@@ -589,10 +624,36 @@ def create_app():
             if request.method == "POST":
                 cliente_nome = request.form["cliente_nome"].strip()
                 cliente_telefone = request.form["cliente_telefone"].strip()
-                profissional_id = int(request.form["profissional_id"])
-                servico_id = int(request.form["servico_id"])
+                profissional_id = request.form.get("profissional_id", type=int)
+                servico_id = request.form.get("servico_id", type=int)
                 data_texto = request.form["data"]
                 hora_inicio_texto = request.form["hora_inicio"]
+
+                if not cliente_nome:
+                    erro = "Informe o nome da cliente."
+                    disponibilidade = buscar_disponibilidade(servico_id, data_texto) if servico_id and data_texto else {}
+                    return render_template(
+                        "novo_agendamento.html",
+                        servicos=servicos,
+                        profissionais=profissionais,
+                        disponibilidade=disponibilidade,
+                        servico_id_query=servico_id,
+                        data_query=data_texto,
+                        erro=erro
+                    )
+
+                if not profissional_id or not servico_id:
+                    erro = "Selecione serviço e profissional para salvar."
+                    disponibilidade = buscar_disponibilidade(servico_id, data_texto) if servico_id and data_texto else {}
+                    return render_template(
+                        "novo_agendamento.html",
+                        servicos=servicos,
+                        profissionais=profissionais,
+                        disponibilidade=disponibilidade,
+                        servico_id_query=servico_id,
+                        data_query=data_texto,
+                        erro=erro
+                    )
 
                 servico = Servico.query.get_or_404(servico_id)
                 data_agendamento = datetime.strptime(data_texto, "%Y-%m-%d").date()
