@@ -483,6 +483,7 @@ def create_app():
             agendamentos = Agendamento.query.order_by(Agendamento.data.asc(), Agendamento.hora_inicio.asc()).all()
             profissionais = {p.id: p.nome for p in Profissional.query.all()}
             servicos = {s.id: s.nome for s in Servico.query.all()}
+            whatsapp_modo_simulado = ler_env("WHATSAPP_SIMULADO", "1") == "1"
 
             enviados = request.args.get("enviados")
             falhas = request.args.get("falhas")
@@ -492,6 +493,7 @@ def create_app():
                 agendamentos=agendamentos,
                 profissionais=profissionais,
                 servicos=servicos,
+                whatsapp_modo_simulado=whatsapp_modo_simulado,
                 enviados=enviados,
                 falhas=falhas
             )

@@ -13,9 +13,9 @@
         <button>Novo Agendamento</button>
     </a>
 
-    <form method="POST" action="{{ url_for('processar_notificacoes_whatsapp') }}" style="display:inline;">
-        <button type="submit">Processar lembretes WhatsApp (amanhã)</button>
-    </form>
+    {% if whatsapp_modo_simulado %}
+        <p style="color: #b00020;"><strong>Aviso:</strong> WhatsApp está em modo simulado. Defina <code>WHATSAPP_SIMULADO=0</code> no servidor para envio real.</p>
+    {% endif %}
 
     {% if enviados is not none and falhas is not none %}
         <p><strong>Resultado:</strong> enviados {{ enviados }} | falhas {{ falhas }}</p>
@@ -43,18 +43,8 @@
                 {% endif %}
                 <br><br>
 
-                {% if not a.lembrete_whatsapp_ativo %}
-                    <form method="POST" action="{{ url_for('ativar_lembrete_whatsapp', agendamento_id=a.id) }}" style="display:inline;">
-                        <button type="submit">Ativar lembrete WhatsApp</button>
-                    </form>
-                {% else %}
-                    <form method="POST" action="{{ url_for('desativar_lembrete_whatsapp', agendamento_id=a.id) }}" style="display:inline;">
-                        <button type="submit">Desativar lembrete</button>
-                    </form>
-                {% endif %}
-
                 <form method="POST" action="{{ url_for('enviar_lembrete_whatsapp_agendamento', agendamento_id=a.id) }}" style="display:inline;">
-                    <button type="submit">Enviar WhatsApp agora (1 clique)</button>
+                    <button type="submit" title="Enviar WhatsApp" aria-label="Enviar WhatsApp">💬</button>
                 </form>
             </p>
             <hr>
