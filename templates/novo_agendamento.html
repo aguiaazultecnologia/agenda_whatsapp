@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Novo Agendamento</title>
+</head>
+<body>
+    <h1>Novo Agendamento</h1>
+
+    <a href="{{ url_for('listar_agendamentos') }}">Voltar</a>
+
+    {% if erro %}
+        <p style="color:red;"><strong>{{ erro }}</strong></p>
+    {% endif %}
+
+    <h3>Buscar disponibilidade</h3>
+    <form method="GET" action="{{ url_for('novo_agendamento') }}">
+        Serviço:<br>
+        <select name="servico_id" required>
+            <option value="">Selecione</option>
+            {% for s in servicos %}
+                <option value="{{ s.id }}" {% if servico_id_query == s.id %}selected{% endif %}>{{ s.nome }} ({{ s.duracao }} min)</option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+        Data:<br>
+        <input type="date" name="data" value="{{ data_query }}" required>
+
+        <br><br>
+        <button type="submit">Buscar Horários</button>
+    </form>
+
+    {% if disponibilidade %}
+        <h3>Disponibilidade</h3>
+        <ul>
+            {% for horario, profs in disponibilidade.items() %}
+                <li>
+                    {{ horario }} -
+                    {% for p in profs %}
+                        {{ p.nome }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <hr>
+
+    <h3>Cadastrar agendamento</h3>
+    <form method="POST">
+        Cliente nome:<br>
+        <input type="text" name="cliente_nome" required>
+
+        <br><br>
+        Cliente telefone:<br>
+        <input type="text" name="cliente_telefone" required>
+
+        <br><br>
+        Serviço:<br>
+        <select name="servico_id" required>
+            <option value="">Selecione</option>
+            {% for s in servicos %}
+                <option value="{{ s.id }}" {% if servico_id_query == s.id %}selected{% endif %}>{{ s.nome }} ({{ s.duracao }} min)</option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+        Data:<br>
+        <input type="date" name="data" value="{{ data_query }}" required>
+
+        <br><br>
+        Hora início:<br>
+        <input type="time" name="hora_inicio" required>
+
+        <br><br>
+        Profissional:<br>
+        <select name="profissional_id" required>
+            <option value="">Selecione</option>
+            {% for p in profissionais %}
+                <option value="{{ p.id }}">{{ p.nome }}</option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+        <button type="submit">Salvar Agendamento</button>
+    </form>
+</body>
+</html>

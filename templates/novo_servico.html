@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Novo Serviço</title>
+</head>
+<body>
+    <h1>Novo Serviço</h1>
+
+    <a href="{{ url_for('listar_servicos') }}">Voltar</a>
+
+    <form method="POST">
+        <br>
+        Nome:<br>
+        <input type="text" name="nome" required>
+
+        <br><br>
+        Duração (em minutos):<br>
+        <input type="number" name="duracao" required>
+
+        <br><br>
+        <button type="submit">Salvar</button>
+    </form>
+</body>
+</html>

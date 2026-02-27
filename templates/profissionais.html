@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profissionais</title>
+</head>
+<body>
+    <h1>Profissionais</h1>
+
+    <a href="{{ url_for('index') }}">Voltar</a>
+    <br><br>
+
+    <a href="{{ url_for('novo_profissional') }}">
+        <button>Novo Profissional</button>
+    </a>
+
+    <hr>
+
+    {% for p in profissionais %}
+        <p>
+            {{ p.nome }} |
+            {{ p.horario_inicio }} às {{ p.horario_fim }}
+            <br>
+            Serviços: 
+            {% if profissionais_servicos[p.id] %}
+                {{ profissionais_servicos[p.id] | join(', ') }}
+            {% else %}
+                Nenhum serviço vinculado
+            {% endif %}
+            <br>
+            <a href="{{ url_for('editar_profissional', profissional_id=p.id) }}">
+                <button type="button">Editar</button>
+            </a>
+            <form method="POST" action="{{ url_for('excluir_profissional', profissional_id=p.id) }}" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir este profissional?');">
+                <button type="submit">Excluir</button>
+            </form>
+        </p>
+        <hr>
+    {% endfor %}
+</body>
+</html>

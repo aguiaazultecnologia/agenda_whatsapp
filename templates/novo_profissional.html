@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Novo Profissional</title>
+</head>
+<body>
+    <h1>Novo Profissional</h1>
+
+    <a href="{{ url_for('listar_profissionais') }}">Voltar</a>
+
+    <form method="POST">
+        <br>
+        Nome:<br>
+        <input type="text" name="nome" required>
+
+        <br><br>
+        Horário início:<br>
+        <input type="time" name="horario_inicio" required>
+
+        <br><br>
+        Horário fim:<br>
+        <input type="time" name="horario_fim" required>
+
+        <br><br>
+        Serviços vinculados:<br>
+        {% for s in servicos %}
+            <label>
+                <input type="checkbox" name="servico_ids" value="{{ s.id }}">
+                {{ s.nome }}
+            </label>
+            <br>
+        {% endfor %}
+
+        <br><br>
+        <button type="submit">Salvar</button>
+    </form>
+</body>
+</html>

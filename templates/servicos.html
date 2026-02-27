@@ -1,0 +1,12 @@
+<h2>Serviços</h2>
+
+<a href="/">Voltar</a><br><br>
+<a href="/servicos/novo">Novo Serviço</a>
+
+<ul>
+    {% for s in servicos %}
+        <li>
+            {{ s.nome }} - {{ s.duracao }} minutos
+        </li>
+    {% endfor %}
+</ul>

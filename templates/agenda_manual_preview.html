@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prévia Agenda Manual</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            margin-bottom: 8px;
+        }
+        .subtitulo {
+            margin-bottom: 16px;
+            color: #444;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #d9d9d9;
+            padding: 8px;
+            text-align: center;
+            height: 36px;
+        }
+        th {
+            background: #f4f4f4;
+        }
+        td.horario {
+            background: #fafafa;
+            font-weight: bold;
+            width: 90px;
+        }
+        td.cliente {
+            min-width: 140px;
+        }
+    </style>
+</head>
+<body>
+    <a href="{{ url_for('index') }}">Voltar</a>
+    <h1>Agenda do Dia</h1>
+    <div class="subtitulo"><strong>Data:</strong> {{ dia }}</div>
+
+    <form method="GET" action="{{ url_for('agenda_manual_preview') }}" style="margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+        <label for="data"><strong>Escolher dia:</strong></label>
+        <input id="data" type="date" name="data" value="{{ data_iso }}" required>
+        <button type="submit">Carregar</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Horário</th>
+                {% for profissional in profissionais %}
+                    <th>{{ profissional.nome }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for horario in horarios %}
+                <tr>
+                    <td class="horario">{{ horario }}</td>
+                    {% set linha = agenda_mapa.get(horario, ['', '', '', '', '']) %}
+                    {% for cliente in linha %}
+                        <td class="cliente">{{ cliente }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

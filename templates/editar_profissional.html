@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Editar Profissional</title>
+</head>
+<body>
+    <h1>Editar Profissional</h1>
+
+    <a href="{{ url_for('listar_profissionais') }}">Voltar</a>
+
+    <form method="POST">
+        <br>
+        Nome:<br>
+        <input type="text" name="nome" value="{{ profissional.nome }}" required>
+
+        <br><br>
+        Horário início:<br>
+        <input type="time" name="horario_inicio" value="{{ profissional.horario_inicio }}" required>
+
+        <br><br>
+        Horário fim:<br>
+        <input type="time" name="horario_fim" value="{{ profissional.horario_fim }}" required>
+
+        <br><br>
+        Serviços vinculados:<br>
+        {% for s in servicos %}
+            <label>
+                <input
+                    type="checkbox"
+                    name="servico_ids"
+                    value="{{ s.id }}"
+                    {% if s.id in servicos_selecionados %}checked{% endif %}
+                >
+                {{ s.nome }}
+            </label>
+            <br>
+        {% endfor %}
+
+        <br><br>
+        <button type="submit">Salvar Alterações</button>
+    </form>
+</body>
+</html>

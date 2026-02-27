@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Agenda Manual</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 16px; }
+        .topo { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+        .data-form { display: inline-flex; align-items: center; gap: 8px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 6px; vertical-align: top; }
+        th { background: #f5f5f5; }
+        .col-horario { width: 78px; text-align: center; font-weight: bold; background: #fafafa; }
+        .celula form { display: flex; flex-direction: column; gap: 4px; }
+        .celula input[type='text'] { width: 100%; box-sizing: border-box; padding: 5px; font-size: 12px; }
+        .celula .acoes { display: flex; gap: 6px; }
+        .celula button { padding: 4px 6px; font-size: 12px; }
+        .bloqueada { background: #fbfbfb; color: #999; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="topo">
+        <a href="{{ url_for('index') }}">Voltar</a>
+        <h1 style="margin:0;">Agenda Manual</h1>
+    </div>
+
+    <div style="margin-bottom:10px;"><strong>Dia:</strong> {{ dia }}</div>
+
+    <form class="data-form" method="GET" action="{{ url_for('agenda_manual') }}">
+        <label for="data">Trocar dia:</label>
+        <input id="data" type="date" name="data" value="{{ data_iso }}" required>
+        <button type="submit">Carregar</button>
+    </form>
+
+    <br><br>
+
+    <table>
+        <thead>
+            <tr>
+                <th class="col-horario">Horário</th>
+                {% for profissional in profissionais %}
+                    <th>{{ profissional.nome }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for horario in horarios %}
+                <tr>
+                    <td class="col-horario">{{ horario }}</td>
+                    {% for profissional in profissionais %}
+                        {% if profissional.id %}
+                            {% set item = agenda_mapa.get((horario, profissional.id), {'cliente_nome':'', 'cliente_telefone':''}) %}
+                            <td class="celula">
+                                <form method="POST" action="{{ url_for('agenda_manual') }}">
+                                    <input type="hidden" name="data" value="{{ data_iso }}">
+                                    <input type="hidden" name="profissional_id" value="{{ profissional.id }}">
+                                    <input type="hidden" name="hora_inicio" value="{{ horario }}">
+
+                                    <input type="text" name="cliente_nome" placeholder="Nome da cliente" value="{{ item.cliente_nome }}">
+                                    <input type="text" name="cliente_telefone" placeholder="Telefone" value="{{ item.cliente_telefone }}">
+
+                                    <div class="acoes">
+                                        <button type="submit">Salvar</button>
+                                        <button type="submit" onclick="this.form.cliente_nome.value=''; this.form.cliente_telefone.value='';">Limpar</button>
+                                    </div>
+                                </form>
+                            </td>
+                        {% else %}
+                            <td class="bloqueada">Sem profissional</td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

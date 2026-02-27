@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Agendamentos</title>
+</head>
+<body>
+    <h1>Agendamentos</h1>
+
+    <a href="{{ url_for('index') }}">Voltar</a>
+    <br><br>
+
+    <a href="{{ url_for('novo_agendamento') }}">
+        <button>Novo Agendamento</button>
+    </a>
+
+    <form method="POST" action="{{ url_for('processar_notificacoes_whatsapp') }}" style="display:inline;">
+        <button type="submit">Processar lembretes WhatsApp (amanhã)</button>
+    </form>
+
+    {% if enviados is not none and falhas is not none %}
+        <p><strong>Resultado:</strong> enviados {{ enviados }} | falhas {{ falhas }}</p>
+    {% endif %}
+
+    <hr>
+
+    {% if agendamentos %}
+        {% for a in agendamentos %}
+            <p>
+                Cliente: {{ a.cliente_nome }} ({{ a.cliente_telefone }})<br>
+                Serviço: {{ servicos.get(a.servico_id, 'Não encontrado') }}<br>
+                Profissional: {{ profissionais.get(a.profissional_id, 'Não encontrado') }}<br>
+                Data: {{ a.data.strftime('%d/%m/%Y') }}<br>
+                Horário: {{ a.hora_inicio.strftime('%H:%M') }} às {{ a.hora_fim.strftime('%H:%M') }}<br>
+                Status: {{ a.status }}<br>
+                Lembrete WhatsApp: 
+                {% if a.lembrete_whatsapp_ativo %}
+                    Ativo
+                {% else %}
+                    Inativo
+                {% endif %}
+                {% if a.lembrete_whatsapp_enviado_em %}
+                    | Enviado em {{ a.lembrete_whatsapp_enviado_em.strftime('%d/%m/%Y %H:%M') }}
+                {% endif %}
+                <br><br>
+
+                {% if not a.lembrete_whatsapp_ativo %}
+                    <form method="POST" action="{{ url_for('ativar_lembrete_whatsapp', agendamento_id=a.id) }}" style="display:inline;">
+                        <button type="submit">Ativar lembrete WhatsApp</button>
+                    </form>
+                {% else %}
+                    <form method="POST" action="{{ url_for('desativar_lembrete_whatsapp', agendamento_id=a.id) }}" style="display:inline;">
+                        <button type="submit">Desativar lembrete</button>
+                    </form>
+                {% endif %}
+
+                <form method="POST" action="{{ url_for('enviar_lembrete_whatsapp_agendamento', agendamento_id=a.id) }}" style="display:inline;">
+                    <button type="submit">Enviar WhatsApp agora (1 clique)</button>
+                </form>
+            </p>
+            <hr>
+        {% endfor %}
+    {% else %}
+        <p>Nenhum agendamento cadastrado.</p>
+    {% endif %}
+</body>
+</html>
